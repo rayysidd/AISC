@@ -73,3 +73,25 @@ class neuralNet:
             return (out > 0.5).astype(int)
         else:
             return np.where(out >= 0, 1, -1)
+
+if __name__ == "__main__":
+    # XOR dataset (binary mode)
+    X = np.array([
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1]
+    ])
+    y = np.array([[0], [1], [1], [0]])
+
+    nn = neuralNet(input_size=2, hidden_size=2, output_size=1, lr=0.5, mode='binary')
+    nn.train(X, y, epochs=10000)
+
+    preds = nn.predict(X)
+    outputs = nn.forward(X)
+
+    print("\nInputs:\n", X)
+    print("Targets:\n", y)
+    print("Raw outputs:\n", np.round(outputs, 5))
+    print("Predictions:\n", preds)
+    print("Accuracy:", np.mean(preds == y))

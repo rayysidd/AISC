@@ -2,18 +2,46 @@ import math
 import random
 
 class PythonNN:
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, output_size, mode='binary'):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
-        self.lr = 0.5
-        
+        self.lr = 0.1
+        self.mode=mode
         # Init weights matrix manually
-        self.W1 = [[random.uniform(-0.5, 0.5) for _ in range(hidden_size)] for _ in range(input_size)]
-        self.W2 = [[random.uniform(-0.5, 0.5) for _ in range(output_size)] for _ in range(hidden_size)]
+        self.W1=[]
+        for i in range(input_size):
+            row=[]
+            for j in range(hidden_size):
+                row.append(random.uniform(-0.5,0.5))
+            self.W1.append(row)
+        
+        self.B1 = []
+        for j in range(hidden_size):
+            self.B1.append(random.uniform(-0.5, 0.5))
 
-    def sigmoid(self, x):
-        return 1 / (1 + math.exp(-x))
+        self.W2 = []
+        for i in range(hidden_size):
+            row = []
+            for j in range(output_size):
+                row.append(random.uniform(-0.5, 0.5))
+            self.W2.append(row) 
+
+        self.B2 = []
+        for j in range(hidden_size):
+            self.B2.append(random.uniform(-0.5, 0.5))
+
+    def activation(self,x):
+        if self.mode == 'binary':
+            return 1 / (1 + math.exp(-x))     # Sigmoid
+        else:
+            return (2 / (1 + math.exp(-x))) - 1
+
+    def derivative(self,f_x):
+        if self.mode == 'binary':
+            return f_x * (1 - f_x)   # Sigmoid derivative
+        else:
+            return 0.5 * (1 + f_x) * (1 - f_x)  # Bipolar sigmoid derivative
 
     def predict(self, inputs):
         # Layer 1
