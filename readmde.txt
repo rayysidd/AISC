@@ -1,0 +1,590 @@
+BPN
+import numpy as np
+
+inputs = np.array([
+    [0,0,0],
+    [0,0,1],
+    [0,1,0],
+    [0,1,1],
+    [1,0,0],
+    [1,0,1],
+    [1,1,0],
+    [1,1,1]
+])
+
+target = np.array([
+    [0,0],
+    [1,0],
+    [1,0],
+    [0,1],
+    [1,0],
+    [0,1],
+    [0,1],
+    [1,1]
+])
+
+def sigmoid(yin):
+  return np.array(1/(1+np.exp(-yin)))
+
+def sig_derive(yin):
+  return np.array(sigmoid(yin)*(1-sigmoid(yin)))
+
+inputSize = 3
+hiddenSize = 4
+outputSize = 2
+
+V = np.random.uniform(size = (inputSize, hiddenSize))
+W = np.random.uniform(size = (hiddenSize, outputSize))
+
+B1= np.random.rand(1, hiddenSize)
+B2 = np.random.rand(1, outputSize)
+
+def forward(x):
+    x = np.array(x).reshape(1, inputSize)
+    Zin = np.dot(x, V) + B1
+    Zout = sigmoid(Zin)
+    Yin = np.dot(Zout, W) + B2
+    Yout = sigmoid(Yin)
+    return x, Zout, Yout
+
+def backward(x, t):
+    global V, W, B1, B2
+
+    x, Zout, Yout = forward(x)
+
+    error = t - Yout
+
+    dY = error * sig_derive(Yout)
+    W += np.dot(Zout.T, dY)
+    B2 += dY
+
+    dZ = np.dot(dY, W.T) * sig_derive(Zout)
+    V += np.dot(x.T, dZ)
+    B1 += dZ
+
+epochs = 10
+for ep in range(epochs):
+    for  i in range(len(inputs)):
+        backward(inputs[i], target[i])
+
+for x in inputs:
+    y = forward(x)
+    print(f"Input{x} -> Output {y}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+SINGLE LAYER PERCEPTRON
+
+
+
+import numpy as np
+
+x=np.array([[1,1],[1,-1],[-1,1],[-1,-1]])
+w=np.array([0.,0.])
+
+alpha=1
+b=0
+
+y=np.array([1,1,1,-1])
+
+while True:
+  change=False
+  for i in range(len(x)):
+    yin=np.dot(x[i],w)+b
+    if yin>0:
+      yout=1
+    elif yin==0:
+      yout=0
+    else:
+      yout=-1
+
+    if yout!=y[i]:
+      w+=alpha*y[i]*x[i]
+      b+=alpha*y[i]
+      change=True
+  if not change:
+    break
+
+print(w)
+print(b)
+
+
+
+
+
+
+
+
+
+ADALINE
+import numpy as np
+
+x=np.array([[1,1],[1,-1],[-1,1],[-1,-1]])
+w=np.array([0.,0.])
+alpha=.1
+b=0
+y=np.array([1,1,1,-1])
+Es=2
+
+while True:
+  Et=0
+  for i in range(len(x)):
+    yin=np.dot(x[i],w)+b
+    w+=alpha*(y[i]-yin)*x[i]
+    b+=alpha*(y[i]-yin)
+
+    Et+=(y[i]-yin)**2
+  if Et<Es:
+    break
+
+print(w)
+print(b)
+
+
+
+
+
+
+
+
+
+MC CULLOH 
+import numpy as np
+
+def MP(x,w,thres):
+  return 1 if np.dot(x,w)>=thres else 0
+
+def OR(a,b):
+  return MP(np.array([a,b]),np.array([1,1]),1)
+
+
+def AND(a,b):
+  return MP(np.array([a,b]),np.array([1,1]),2)
+
+
+def XOR(a,b):
+  s1=OR(a,b)
+  s2=AND(a,b)
+  return MP(np.array([s1,s2]),np.array([1,-1]),1)
+
+x=[[0,0],[0,1],[1,0],[1,1]]
+
+for a,b in x:
+  print(a ,b , AND(a,b),OR(a,b),XOR(a,b))
+
+
+
+
+
+
+
+
+KFOSM
+import numpy as np
+
+x=np.array([
+    [0,0,1,1],
+    [1,0,0,0],
+    [0,0,0,1],
+    [1,1,0,0],
+    [0,1,1,0]
+])
+
+clusters=2
+alpha=0.1
+w=x[:clusters].copy()
+
+for i in range(10):
+  for z in x[clusters:]:
+    d=np.linalg.norm(z-w,axis=1)
+    j=np.argmin(d)
+    w[j]=w[j]+alpha*(z-w[j])
+  alpha*=0.9
+
+for i,wi in enumerate(w):
+  print(i,wi)
+
+
+
+
+
+
+
+
+LVQ 
+import numpy as np
+X=[
+    [0,0,1,1],
+    [1,0,0,0],
+    [0,0,0,1],
+    [1,1,0,0],
+    [0,1,1,0]
+]
+Y=[1,2,2,1,1]
+alpha=0.5
+w=[]
+n=2
+for i in range(2):
+  w.append(X.pop(0))
+  Y.pop(0)
+
+for x,t in (zip(X,Y)):
+  d=np.linalg.norm(np.array(x)-np.array(w),axis=1)
+  j=np.argmin(d)
+  if t==j+1:
+    w[j]=np.array(w[j])+alpha*(np.array(x)-np.array(w[j]))
+  else:
+    w[j]=np.array(w[j])-alpha*(np.array(x)-np.array(w[j]))
+
+for i,wi in enumerate(w):
+  print(i,wi)
+
+
+
+
+
+
+
+
+
+
+HETRO ASSOCIATIVE
+import numpy as np
+
+patterns = np.array([
+    [-1, -1, -1],
+    [-1, -1,  1],
+    [-1,  1, -1],
+    [-1,  1,  1],
+    [ 1, -1, -1],
+    [ 1, -1,  1],
+    [ 1, 1, -1],
+    [ 1, 1,  1]
+])
+
+targets = np.array([
+    [-1, -1, -1, -1],
+    [-1, -1, -1,  1],
+    [-1, -1,  1, -1],
+    [-1, -1,  1,  1],
+    [ 1,  1, -1, -1],
+    [ 1,  1, -1,  1],
+    [ 1,  1,  1, -1],
+    [ 1,  1,  1,  1]
+])
+
+
+w=np.dot(patterns.T,targets)
+print(w)
+for x in patterns:
+  yin=np.dot(x,w)
+  yout=np.where(yin>0,1,-1)
+  print("input ",x,"  output ",yout)
+
+
+
+
+
+
+
+
+
+
+
+AUTO ASSOCIATIVE
+import numpy as np
+
+patterns = np.array([
+    [-1, -1, -1],
+    [-1, -1,  1],
+    [-1,  1, -1],
+    [-1,  1,  1],
+    [ 1, -1, -1],
+    [ 1, -1,  1],
+    [ 1, 1, -1],
+    [ 1, 1,  1]
+])
+
+
+
+w=np.dot(patterns.T,patterns)
+np.fill_diagonal(w,0)
+print(w)
+for x in patterns:
+  yin=np.dot(x,w)
+  yout=np.where(yin>0,1,-1)
+  print("input ",x,"  output ",yout)
+
+
+
+
+
+
+
+BAM
+import numpy as np
+
+# ---- Bipolar input patterns (X) ----
+patterns = np.array([
+    [-1, -1, -1],
+    [-1, -1,  1],
+    [-1,  1, -1],
+    [-1,  1,  1],
+    [ 1, -1, -1],
+    [ 1, -1,  1],
+    [ 1, 1, -1],
+    [ 1, 1,  1]
+])
+
+# ---- Bipolar target patterns (Y) ----
+targets = np.array([
+    [-1, -1, -1, -1],
+    [-1, -1, -1,  1],
+    [-1, -1,  1, -1],
+    [-1, -1,  1,  1],
+    [ 1,  1, -1, -1],
+    [ 1,  1, -1,  1],
+    [ 1,  1,  1, -1],
+    [ 1,  1,  1,  1]
+])
+
+w = np.dot(patterns.T, targets)
+
+for x in patterns:
+    yin = np.dot(x, w)
+    yout  = np.where(yin >= 0, 1, -1)
+    print(f"Input: {x} => Output: {yout}")
+
+print("\n Reconstructed Input\n")
+
+for y in targets:
+    yin = np.dot(y, w.T)
+    yout = np.where(yin >= 0, 1,-1)
+    print(f"Input: {y} => Output: {yout}")
+
+
+
+
+
+
+
+
+
+
+
+HOPFIELD
+import numpy as np
+
+pattern = np.array([ -1, -1, 1, -1, 1])
+
+W = np.outer(pattern.T, pattern) # bipolar W = np.dot((2*pattern-1).T, (2*pattern-1))
+np.fill_diagonal(W, 0)
+
+noisy_pattern = np.array([ -1, -1, -1, -1, 1])
+
+print("Stored Pattern: ", pattern)
+print("Noisy Pattern:  ", noisy_pattern)
+
+iterations = 0
+max = 10
+
+current = noisy_pattern.copy()
+
+while iterations < max:
+    next_state = np.where(np.dot(W, current) >= 0, 1, -1)
+    if np.array_equal(next_state, noisy_pattern):
+        break
+    noisy_pattern = next_state
+    iterations += 1
+
+print("Recovered Pattern: ", noisy_pattern)
+
+
+
+
+
+
+
+FIS
+import numpy as np
+import matplotlib.pyplot as plt
+
+def trimf(x, a, b, c):
+    """Safer triangular MF that supports left/right shoulders when a==b or b==c."""
+    x = np.asarray(x, dtype=float)
+    y = np.zeros_like(x)
+    # rising edge
+    if b != a:
+        rising = (x >= a) & (x <= b)
+        y[rising] = (x[rising] - a) / (b - a)
+    else:
+        # left shoulder: value 1 for x <= b
+        y[x <= b] = 1.0
+    # falling edge
+    if c != b:
+        falling = (x >= b) & (x <= c)
+        # ensure we don't overwrite a higher rising value
+        y[falling] = np.maximum(y[falling], (c - x[falling]) / (c - b))
+    else:
+        # right shoulder: value 1 for x >= b
+        y[x >= b] = 1.0
+    return np.clip(y, 0, 1)
+
+# universe for output variable (same as you used)
+x = np.linspace(0, 100, 1000)
+
+# membership functions (Mamdani-style consequents)
+mf = {
+    'S': trimf(x, 0, 0, 50),    # left shoulder
+    'M': trimf(x, 0, 50, 100),  # triangle centered around 50
+    'L': trimf(x, 50, 100, 100) # right shoulder
+}
+
+# rule table (3x3): rules[row][col] is consequent term when
+# theta term = terms[row], omega term = terms[col]
+rules = [
+    ['S', 'S', 'M'],
+    ['S', 'M', 'L'],
+    ['M', 'L', 'L']
+]
+
+terms = ['S', 'M', 'L']
+
+def fuzzify(val, mfs):
+    """Return dictionary name->degree for a crisp input `val`."""
+    degree = {}
+    for name, mf_vals in mfs.items():
+        degree[name] = np.interp(val, x, mf_vals)
+    return degree
+
+def infer(theta_value, omega_value):
+    """Mamdani inference: return aggregated fuzzy output (array over universe x)."""
+    degree_theta = fuzzify(theta_value, mf)
+    degree_omega = fuzzify(omega_value, mf)
+
+    aggregated = np.zeros_like(x)
+    for i, p in enumerate(terms):
+        for j, q in enumerate(terms):
+            rule_strength = min(degree_theta[p], degree_omega[q])
+            consequent = rules[i][j]
+            # clip the consequent MF by the rule strength and aggregate (max)
+            aggregated = np.maximum(aggregated, np.minimum(rule_strength, mf[consequent]))
+    return aggregated
+
+def defuzzify_centroid(degree, universe):
+    """Centroid defuzzification — returns crisp value (handles zero denom)."""
+    numer = np.sum(universe * degree)
+    denom = np.sum(degree)
+    if denom == 0:
+        return 0.0
+    return numer / denom
+
+# example usage
+theta_input = 25
+omega_input = 10
+
+output_mf = infer(theta_input, omega_input)
+out_crisp = defuzzify_centroid(output_mf, x)
+
+print(f"Inputs: theta={theta_input}, omega={omega_input}")
+print(f"Defuzzified (Mamdani centroid) output: {out_crisp:.4f}")
+
+
+
+
+
+
+
+
+
+
+
+ANFIS
+import numpy as np
+
+def gauss_mf(x, mu, sigma):
+    return np.exp(-0.5 * ((x - mu) / sigma)**2)
+
+X = 20
+Y = 30
+
+print(f"Input: X={X}, Y={Y}")
+
+mu_x_small = gauss_mf(X,0,30)
+mu_y_small = gauss_mf(Y,0,30)
+mu_y_high = gauss_mf(Y,100,30)
+
+print(f"--- LAYER 1: Fuzzification Nodes ---")
+print(f"O1,1 (X is Small): {mu_x_small:.4f}")
+print(f"O1,2 (Y is Small): {mu_y_small:.4f}")
+print(f"O1,3 (Y is High):  {mu_y_high:.4f}\n")
+
+#layer 2 and layer 3
+
+w1 = mu_x_small * mu_y_small
+w2 = mu_x_small * mu_y_high
+
+print(f"--- LAYER 2: Firing Strengths (Weights) ---")
+print(f"w1 (Rule 1 strength): {w1:.4f}")
+print(f"w2 (Rule 2 strength): {w2:.4f}\n")
+
+#normalised
+w1_norm = w1 / (w1 + w2)
+w2_norm = w2 / (w1 + w2)
+
+print(f"--- LAYER 3: Normalized Weights ---")
+print(f"w1_norm: {w1_norm:.4f}")
+print(f"w2_norm: {w2_norm:.4f}\n")
+
+#layer 4 and 5
+
+f1 = w1_norm * ((0.1 * X) + (0.2 * Y))
+f2 = w2_norm * ((0.6*X) + (0.5*Y))
+
+print(f"--- LAYER 4: Consequent Nodes ---")
+print(f"Rule 1 Output (f1): {f1:.2f} ")
+print(f"Rule 2 Output (f2): {f2:.2f} \n")
+
+final_output = f1 + f2
+
+print(f"--- LAYER 5: Final Output ---")
+print(f"Brake Power: {final_output:.4f}")
+
+
+
+
+
+
+
+
+
+ACTIVATION FUNCTION
+import numpy as np
+
+def step(yin):
+  return np.array([1 if x>0 else 0 for x in yin])
+
+def sigmoid(yin):
+  return np.array([1/(1+np.exp(-x)) for x in yin])
+
+def sigmoid_bp(yin):
+  return np.array([(1-np.exp(-x))/(1+np.exp(-x)) for x in yin])
+
+
+x=[[0,0],[0,1],[1,0],[1,1]]
+w=np.array([1,1])
+
+yin=np.dot(x,w)-0.3
+print(step(yin))
+print(sigmoid(yin))
+print(sigmoid_bp(yin))
